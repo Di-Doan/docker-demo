@@ -14,7 +14,7 @@ RUN npm install --production
 FROM nginx:alpine AS frontend-build
 
 # Copy mã frontend vào thư mục của Nginx
-COPY dist/apps/frontend/browser /usr/share/nginx/html
+COPY dist/apps/frontend /usr/share/nginx/html
 
 # Bước 3: Cấu hình Nginx để phục vụ frontend
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -23,10 +23,10 @@ COPY nginx.conf /etc/nginx/nginx.conf
 FROM node:18
 
 # Cài đặt thư viện cần thiết cho backend
-WORKDIR /apps
+WORKDIR /app
 
 # Copy backend vào container
-COPY --from=backend-build /apps/backend /apps/backend
+COPY --from=backend-build /app/backend /app/backend
 
 # Cài đặt các dependencies của backend
 RUN npm install --production
