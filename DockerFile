@@ -1,9 +1,9 @@
 # Stage 1: Build Frontend
 FROM node:18 as frontend-build
 
-WORKDIR /apps/frontend
+WORKDIR /apps
 
-COPY frontend/package*.json ./
+COPY ../package*.json ./
 RUN npm install
 COPY frontend/ .
 RUN npm run build
@@ -11,9 +11,8 @@ RUN npm run build
 # Stage 2: Build Backend
 FROM node:18 as backend-build
 
-WORKDIR /apps/backend
+WORKDIR /apps
 
-COPY backend/package*.json ./
 RUN npm install
 COPY backend/ .
 RUN npm run build
