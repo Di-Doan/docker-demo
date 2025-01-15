@@ -1,0 +1,41 @@
+# Bước 1: Chọn base image cho Backend (Node.js)
+FROM node:18 AS backend-build
+
+# Cài đặt thư viện cần thiết cho backend
+WORKDIR /app/backend
+
+# Copy mã backend vào container
+COPY dist/apps/backend .
+
+# Cài đặt dependencies cho backend
+RUN npm install --production
+
+# Bước 2: Chọn base image cho Frontend (Nginx để phục vụ frontend)
+FROM nginx:alpine AS frontend-build
+
+# Copy mã frontend vào thư mục của Nginx
+COPY dist/apps/frontend /usr/share/nginx/html
+
+# Bước 3: Cấu hình Nginx để phục vụ frontend
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Bước 4: Tạo một container cuối cùng để chạy cả backend và frontend
+FROM node:18
+
+# Cài đặt thư viện cần thiết cho backend
+WORKDIR /app
+
+# Copy backend vào container
+COPY --from=backend-build /app/backend /app/backend
+
+# Cài đặt các dependencies của backend
+RUN npm install --production
+
+# Copy Nginx và frontend vào container
+COPY --from=frontend-build /usr/share/nginx/html /usr/share/nginx/html
+
+# Mở port cho backend và frontend
+EXPOSE 3000 80
+
+# Chạy cả Backend và Frontend
+CMD ["sh", "-c", "node /app/backend/main.js & nginx -g 'daemon off;'"]
