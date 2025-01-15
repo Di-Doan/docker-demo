@@ -1,47 +1,41 @@
 # Stage 1: Build Frontend
 FROM node:18 as frontend-build
 
-WORKDIR /apps/frontend
+WORKDIR /apps
 
-# Copy root package.json and lock file to install dependencies
+# Use a reliable npm registry mirror
+RUN npm config set registry https://registry.npmmirror.com
+
+# Install dependencies
 COPY package*.json /apps/
+RUN npm install
 
-# Install root-level dependencies
-RUN cd /apps && npm install
-
-# Copy only the frontend source files
+# Copy frontend source files
 COPY apps/frontend /apps/frontend
-
-# Build the frontend
 RUN npm run build --prefix /apps/frontend
 
 # Stage 2: Build Backend
 FROM node:18 as backend-build
 
-WORKDIR /apps/backend
+WORKDIR /apps
 
-# Reuse the root-level node_modules from the first stage
-COPY --from=frontend-build /apps/node_modules /apps/node_modules
+# Reuse the npm registry mirror
+RUN npm config set registry https://registry.npmmirror.com
 
-# Copy only the backend source files
+# Install dependencies
+COPY package*.json /apps/
+RUN npm install
+
+# Copy backend source files
 COPY apps/backend /apps/backend
-
-# Build the backend
 RUN npm run build --prefix /apps/backend
 
-# Final Stage: Combine Backend and Frontend into one image
+# Final Stage
 FROM node:18
 
 WORKDIR /apps
-
-# Copy the built frontend files
 COPY --from=frontend-build /apps/frontend/dist /apps/frontend/dist
-
-# Copy the built backend files
 COPY --from=backend-build /apps/backend/dist /apps/backend/dist
 
-# Expose ports for both services
 EXPOSE 3000 5000
-
-# Start the backend and frontend
 CMD ["sh", "-c", "npm run start:backend & npm run start:frontend && wait"]
