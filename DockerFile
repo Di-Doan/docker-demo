@@ -14,7 +14,7 @@ RUN npm install --production
 FROM nginx:alpine AS frontend-build
 
 # Copy mã frontend vào thư mục của Nginx
-COPY dist/apps/frontend /usr/share/nginx/html
+COPY dist/apps/frontend/browser /usr/share/nginx/html
 
 # Bước 3: Cấu hình Nginx để phục vụ frontend
 COPY nginx.conf /etc/nginx/nginx.conf
