@@ -3,8 +3,8 @@ FROM node:18 as dependencies
 
 WORKDIR /apps
 
-# Copy the shared package.json and install dependencies
-COPY ../package*.json ./
+# Copy the root package.json and install dependencies
+COPY package*.json ./
 RUN npm install
 
 # Stage 2: Build Frontend
@@ -12,35 +12,35 @@ FROM node:18 as frontend-build
 
 WORKDIR /apps/frontend
 
-# Copy dependencies from the previous stage
+# Copy the node_modules installed in the previous stage
 COPY --from=dependencies /apps/node_modules /apps/node_modules
 
 # Copy the frontend source code
-COPY apps/frontend ./
+COPY apps/frontend /apps/frontend/
 
 # Build the frontend
-RUN npm run build --prefix ../
+RUN npm run build --prefix /apps
 
 # Stage 3: Build Backend
 FROM node:18 as backend-build
 
 WORKDIR /apps/backend
 
-# Copy dependencies from the previous stage
+# Copy the node_modules installed in the previous stage
 COPY --from=dependencies /apps/node_modules /apps/node_modules
 
 # Copy the backend source code
-COPY apps/backend ./
+COPY apps/backend /apps/backend/
 
 # Build the backend
-RUN npm run build --prefix ../
+RUN npm run build --prefix /apps
 
 # Final Stage: Combine Frontend and Backend
 FROM node:18
 
 WORKDIR /apps
 
-# Copy frontend and backend builds
+# Copy the frontend and backend builds
 COPY --from=frontend-build /apps/frontend/dist /apps/frontend/dist
 COPY --from=backend-build /apps/backend/dist /apps/backend/dist
 
