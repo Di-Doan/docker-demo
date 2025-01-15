@@ -1,46 +1,51 @@
-# Stage 1: Build Frontend
+# Stage 1: Install Dependencies
+FROM node:18 as dependencies
+
+WORKDIR /apps
+
+# Copy the shared package.json and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Stage 2: Build Frontend
 FROM node:18 as frontend-build
 
 WORKDIR /apps/frontend
 
-# Copy root-level package.json and install dependencies
-COPY package*.json /apps/
+# Copy dependencies from the previous stage
+COPY --from=dependencies /apps/node_modules /apps/node_modules
 
-RUN cd /apps && npm install
-
-# Copy only the frontend source files
-COPY apps/frontend /apps/frontend
+# Copy the frontend source code
+COPY apps/frontend ./
 
 # Build the frontend
-RUN npm run build --prefix /apps/frontend
+RUN npm run build --prefix ../
 
-# Stage 2: Build Backend
+# Stage 3: Build Backend
 FROM node:18 as backend-build
 
 WORKDIR /apps/backend
 
-# Reuse the root-level node_modules from the first stage
-COPY --from=frontend-build /apps/node_modules /apps/node_modules
+# Copy dependencies from the previous stage
+COPY --from=dependencies /apps/node_modules /apps/node_modules
 
-# Copy only the backend source files
-COPY apps/backend /apps/backend
+# Copy the backend source code
+COPY apps/backend ./
 
 # Build the backend
-RUN npm run build --prefix /apps/backend
+RUN npm run build --prefix ../
 
-# Final Stage: Combine Backend and Frontend into one image
+# Final Stage: Combine Frontend and Backend
 FROM node:18
 
 WORKDIR /apps
 
-# Copy the built frontend files
+# Copy frontend and backend builds
 COPY --from=frontend-build /apps/frontend/dist /apps/frontend/dist
-
-# Copy the built backend files
 COPY --from=backend-build /apps/backend/dist /apps/backend/dist
 
-# Expose ports for both services
+# Expose ports for backend and frontend
 EXPOSE 3000 5000
 
-# Start the backend and frontend
+# Start both backend and frontend
 CMD ["sh", "-c", "npm run start:backend & npm run start:frontend && wait"]

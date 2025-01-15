@@ -6,7 +6,12 @@
     "febuild": "nx build frontend",
     "bebuild": "nx build backend",
     "postbuild:backend": "cp -r dist/apps/frontend dist/apps/backend/frontend",
-    "build:all": "nx build frontend && nx build backend && npm run postbuild:backend"
+    "build:all": "nx build frontend && nx build backend && npm run postbuild:backend",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "ng build --output-path=apps/frontend/dist",
+    "build:backend": "tsc -p apps/backend",
+    "start:frontend": "serve -s apps/frontend/dist -l 5000",
+    "start:backend": "node apps/backend/dist/main.js"
   },
   "private": true,
   "dependencies": {
