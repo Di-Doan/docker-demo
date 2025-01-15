@@ -1,7 +1,7 @@
 # Stage 1: Build Frontend
 FROM node:18 as frontend-build
 
-WORKDIR /app/frontend
+WORKDIR /apps/frontend
 
 COPY frontend/package*.json ./
 RUN npm install
@@ -11,7 +11,7 @@ RUN npm run build
 # Stage 2: Build Backend
 FROM node:18 as backend-build
 
-WORKDIR /app/backend
+WORKDIR /apps/backend
 
 COPY backend/package*.json ./
 RUN npm install
@@ -21,13 +21,13 @@ RUN npm run build
 # Final Stage: Combine Backend and Frontend into one image
 FROM node:18
 
-WORKDIR /app
+WORKDIR /apps
 
 # Copy the frontend build from frontend-build stage
-COPY --from=frontend-build /app/frontend/dist /app/frontend/dist
+COPY --from=frontend-build /apps/frontend/dist /apps/frontend/dist
 
 # Copy the backend build from backend-build stage
-COPY --from=backend-build /app/backend/dist /app/backend/dist
+COPY --from=backend-build /apps/backend/dist /apps/backend/dist
 
 # Expose the ports
 EXPOSE 3000 5000
